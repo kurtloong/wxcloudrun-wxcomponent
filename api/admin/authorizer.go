@@ -260,3 +260,68 @@ func getArticlesummaryHandler(c *gin.Context) {
 	// 返回响应
 	c.JSON(http.StatusOK, errno.OK.WithData(respData))
 }
+
+
+// https://api.weixin.qq.com/datacube/getusersummary?access_token=ACCESS_TOKEN
+// POST
+// {
+// "begin_date":"20170301",
+// "end_date":"20170301"
+// }
+
+func getUsersummaryHandler(c *gin.Context) {
+	appId := c.DefaultQuery("appId", "")
+	originId := c.DefaultQuery("originId", "")
+	beginDate := c.DefaultQuery("beginDate", time.Now().AddDate(0, -1, 0).Format("20060102"))
+	endDate := c.DefaultQuery("endDate", time.Now().Format("20060102"))
+
+	// 如果都为空
+	if appId == "" && originId == "" {
+		log.Error("appId and originId are empty")	
+		c.JSON(http.StatusOK, errno.ErrInvalidParam)
+		return
+	}
+
+	// 如果appId为空，则根据originId查询
+	if appId == "" {
+		record := model.Authorizer{}
+		db.Get().Table("authorizer_records").Where("username = ?", originId).First(&record)
+		if record.Appid == "" {
+			log.Error("authorizer not found")
+			c.JSON(http.StatusOK, errno.ErrInvalidParam)
+			return
+		}
+
+		appId = record.Appid
+	}
+
+	token, err := wx.GetAuthorizerAccessToken(appId)
+	log.Info("token: ", token)
+	if err != nil {
+		log.Error("GetAuthorizerAccessToken fail: ", err)
+		c.JSON(http.StatusOK, errno.ErrSystemError.WithData(err.Error()))
+		return
+	}
+
+	// 组装请求体
+	body := fmt.Sprintf(`{"begin_date":"%s","end_date":"%s"}`, beginDate, endDate)
+
+	resp, err := http.Post(fmt.Sprintf("https://api.weixin.qq.com/datacube/getusersummary?access_token=%s", token), "application/json", bytes.NewBuffer([]byte(body)))
+	log.Info("resp: ", resp)
+	if err != nil {
+		c.JSON(http.StatusOK, errno.ErrSystemError.WithData(err.Error()))
+		return
+	}
+
+	// 解析响应
+	var respData map[string]interface{}
+	err = json.NewDecoder(resp.Body).Decode(&respData)
+	if err != nil {
+		c.JSON(http.StatusOK, errno.ErrSystemError.WithData(err.Error()))
+		return
+	}
+
+	// 返回响应
+	log.Info("respData: ", respData)
+	c.JSON(http.StatusOK, errno.OK.WithData(respData))
+}
