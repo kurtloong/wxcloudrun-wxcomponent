@@ -196,13 +196,16 @@ func getAuthorizerListHandler(c *gin.Context) {
 func getArticlesummaryHandler(c *gin.Context) {
 	appId := c.DefaultQuery("appId", "")
 	originId := c.DefaultQuery("originId", "")
-	//begin_date
-	beginDate := c.DefaultQuery("beginDate", "")
+	//begin_date 默认近一个月
+	beginDate := c.DefaultQuery("beginDate", time.Now().AddDate(0, -1, 0).Format("20060102"))
 	//end_date
-	endDate := c.DefaultQuery("endDate", "")
+	endDate := c.DefaultQuery("endDate", time.Now().Format("20060102"))
+
+
 
 	// 如果都为空
 	if appId == "" && originId == "" {
+		log.Error("appId and originId are empty")	
 		c.JSON(http.StatusOK, errno.ErrInvalidParam)
 		return
 	}
@@ -212,15 +215,19 @@ func getArticlesummaryHandler(c *gin.Context) {
 		record := model.Authorizer{}
 		db.Get().Table("authorizer_records").Where("username = ?", originId).First(&record)
 		if record.Appid == "" {
+			log.Error("authorizer not found")
 			c.JSON(http.StatusOK, errno.ErrInvalidParam)
 			return
 		}
 
 		appId = record.Appid
+		log.Info("appId: ", appId)
 	}
 
 	token, err := wx.GetAuthorizerAccessToken(appId)
+	log.Info("token: ", token)
 	if err != nil {
+		log.Error("GetAuthorizerAccessToken fail: ", err)
 		c.JSON(http.StatusOK, errno.ErrSystemError.WithData(err.Error()))
 		return
 	}
@@ -236,6 +243,7 @@ func getArticlesummaryHandler(c *gin.Context) {
 	body := fmt.Sprintf(`{"begin_date":"%s","end_date":"%s"}`, beginDate, endDate)
 
 	resp, err := http.Post(fmt.Sprintf("https://api.weixin.qq.com/datacube/getarticlesummary?access_token=%s", token), "application/json", bytes.NewBuffer([]byte(body)))
+	log.Info("resp: ", resp)
 	if err != nil {
 		c.JSON(http.StatusOK, errno.ErrSystemError.WithData(err.Error()))
 		return
