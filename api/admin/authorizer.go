@@ -394,3 +394,76 @@ func getMaterialHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, errno.OK.WithData(respData))
 }
+
+
+// https://api.weixin.qq.com/cgi-bin/freepublish/batchget
+// POST
+// {
+// "offset":"20170301",
+// "count":"20"
+// }
+
+func getFreePublishHandler(c *gin.Context) {
+	appId := c.DefaultQuery("appId", "")
+	originId := c.DefaultQuery("originId", "")
+	offset, err := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	if err != nil {
+		c.JSON(http.StatusOK, errno.ErrInvalidParam.WithData(err.Error()))
+		return
+	}
+	count, err := strconv.Atoi(c.DefaultQuery("count", "20"))
+	if err != nil {
+		c.JSON(http.StatusOK, errno.ErrInvalidParam.WithData(err.Error()))
+		return
+	}
+
+	// 如果都为空
+	if appId == "" && originId == "" {
+		log.Error("appId and originId are empty")
+		c.JSON(http.StatusOK, errno.ErrInvalidParam)
+		return
+	}	
+
+	// 如果appId为空，则根据originId查询
+	if appId == "" {
+		record := model.Authorizer{}
+		db.Get().Table("authorizer_records").Where("username = ?", originId).First(&record)
+		if record.Appid == "" {
+			log.Error("authorizer not found")
+			c.JSON(http.StatusOK, errno.ErrInvalidParam)
+			return
+		}
+
+		appId = record.Appid
+	}
+
+	token, err := wx.GetAuthorizerAccessToken(appId)
+	if err != nil {
+		c.JSON(http.StatusOK, errno.ErrSystemError.WithData(err.Error()))
+		return
+	}
+
+	req := struct {
+		Offset int `json:"offset"`
+		Count  int `json:"count"`
+	}{
+		Offset: offset,	
+		Count:  count,
+	}
+
+	_, body, err := wx.PostWxJsonWithComponentToken("/cgi-bin/freepublish/batchget", fmt.Sprintf("access_token=%s", token), req)
+	if err != nil {
+		c.JSON(http.StatusOK, errno.ErrSystemError.WithData(err.Error()))
+		return
+	}
+
+	var respData map[string]interface{}
+	if err := wx.WxJson.Unmarshal(body, &respData); err != nil {
+		c.JSON(http.StatusOK, errno.ErrSystemError.WithData(err.Error()))
+		return
+	}
+
+	c.JSON(http.StatusOK, errno.OK.WithData(respData))
+}
+
+
