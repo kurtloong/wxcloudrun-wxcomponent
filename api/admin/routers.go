@@ -12,6 +12,7 @@ func Routers(e *gin.RouterGroup) {
 	e.PUT("/auth", authHandler)
 	e.GET("/articlesummary", getArticlesummaryHandler)
 	e.GET("/usersummary", getUsersummaryHandler)
+	e.GET("/material", getMaterialHandler)
 	g := e.Group("/admin", middleware.JWTMiddleWare)
 
 	// 第三方token
