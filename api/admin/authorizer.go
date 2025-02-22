@@ -1,8 +1,6 @@
 package admin
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -203,7 +201,7 @@ func getArticlesummaryHandler(c *gin.Context) {
 
 	// 如果都为空
 	if appId == "" && originId == "" {
-		log.Error("appId and originId are empty")	
+		log.Error("appId and originId are empty")
 		c.JSON(http.StatusOK, errno.ErrInvalidParam)
 		return
 	}
@@ -268,7 +266,7 @@ func getUsersummaryHandler(c *gin.Context) {
 
 	// 如果都为空
 	if appId == "" && originId == "" {
-		log.Error("appId and originId are empty")	
+		log.Error("appId and originId are empty")
 		c.JSON(http.StatusOK, errno.ErrInvalidParam)
 		return
 	}
