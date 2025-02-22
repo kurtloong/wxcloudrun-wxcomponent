@@ -81,6 +81,7 @@ func postWxJson(url string, data interface{}) (*WxCommError, []byte, error) {
 	var body []byte
 	var err error
 	jsonByte, _ := WxJson.Marshal(data)
+	log.Info("jsonByte傻逼微信: ", string(jsonByte))
 	if body, err = httputils.Post(url, jsonByte, "application/json"); err != nil {
 		return &wxError, body, err
 	}
