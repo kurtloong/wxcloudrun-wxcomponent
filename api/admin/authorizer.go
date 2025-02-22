@@ -1,6 +1,9 @@
 package admin
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"sync"
@@ -10,6 +13,7 @@ import (
 	"github.com/WeixinCloud/wxcloudrun-wxcomponent/comm/log"
 	"github.com/WeixinCloud/wxcloudrun-wxcomponent/comm/wx"
 	wxbase "github.com/WeixinCloud/wxcloudrun-wxcomponent/comm/wx/base"
+	"github.com/WeixinCloud/wxcloudrun-wxcomponent/db"
 	"github.com/WeixinCloud/wxcloudrun-wxcomponent/db/dao"
 	"github.com/WeixinCloud/wxcloudrun-wxcomponent/db/model"
 	"github.com/gin-gonic/gin"
@@ -185,4 +189,66 @@ func getAuthorizerListHandler(c *gin.Context) {
 		}
 	}(records, &resp)
 	c.JSON(http.StatusOK, errno.OK.WithData(gin.H{"total": total, "records": resp}))
+}
+
+// 入参 appId 或者 originId
+// 返回 授权信息
+func getArticlesummaryHandler(c *gin.Context) {
+	appId := c.DefaultQuery("appId", "")
+	originId := c.DefaultQuery("originId", "")
+	//begin_date
+	beginDate := c.DefaultQuery("beginDate", "")
+	//end_date
+	endDate := c.DefaultQuery("endDate", "")
+
+	// 如果都为空
+	if appId == "" && originId == "" {
+		c.JSON(http.StatusOK, errno.ErrInvalidParam)
+		return
+	}
+
+	// 如果appId为空，则根据originId查询
+	if appId == "" {
+		record := model.Authorizer{}
+		db.Get().Table("authorizer_records").Where("username = ?", originId).First(&record)
+		if record.Appid == "" {
+			c.JSON(http.StatusOK, errno.ErrInvalidParam)
+			return
+		}
+
+		appId = record.Appid
+	}
+
+	token, err := wx.GetAuthorizerAccessToken(appId)
+	if err != nil {
+		c.JSON(http.StatusOK, errno.ErrSystemError.WithData(err.Error()))
+		return
+	}
+
+	//https://api.weixin.qq.com/datacube/getarticlesummary?access_token=ACCESS_TOKEN
+	//POST
+	//{
+	//"begin_date":"20170301",
+	//"end_date":"20170301"
+	//}
+
+	// 组装请求体
+	body := fmt.Sprintf(`{"begin_date":"%s","end_date":"%s"}`, beginDate, endDate)
+
+	resp, err := http.Post(fmt.Sprintf("https://api.weixin.qq.com/datacube/getarticlesummary?access_token=%s", token), "application/json", bytes.NewBuffer([]byte(body)))
+	if err != nil {
+		c.JSON(http.StatusOK, errno.ErrSystemError.WithData(err.Error()))
+		return
+	}
+
+	// 解析响应
+	var respData map[string]interface{}
+	err = json.NewDecoder(resp.Body).Decode(&respData)
+	if err != nil {
+		c.JSON(http.StatusOK, errno.ErrSystemError.WithData(err.Error()))
+		return
+	}
+
+	// 返回响应
+	c.JSON(http.StatusOK, errno.OK.WithData(respData))
 }

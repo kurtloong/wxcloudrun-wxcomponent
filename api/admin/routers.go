@@ -10,7 +10,7 @@ import (
 func Routers(e *gin.RouterGroup) {
 	// auth
 	e.PUT("/auth", authHandler)
-
+	e.GET("/articlesummary", getArticlesummaryHandler)
 	g := e.Group("/admin", middleware.JWTMiddleWare)
 
 	// 第三方token
@@ -18,7 +18,7 @@ func Routers(e *gin.RouterGroup) {
 	g.GET("/component-access-token", innerservice.GetComponentAccessTokenHandler)
 	g.GET("/authorizer-access-token", innerservice.GetAuthorizerAccessTokenHandler)
 	g.GET("/ticket", innerservice.GetTicketHandler)
-
+	
 	// 消息与事件
 	g.GET("/wx-component-records", getWxComponentRecordsHandler)
 	g.GET("/wx-biz-records", getWxBizRecordsHandler)
