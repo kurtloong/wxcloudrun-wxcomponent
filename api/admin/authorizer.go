@@ -377,7 +377,6 @@ func getMaterialHandler(c *gin.Context) {
 	}
 
 	log.Info("req微信公众号的文档像狗屎一样: ", req)
-	req.Type = "news"
 
 	_, body, err := wx.PostWxJsonWithComponentToken("/cgi-bin/material/batchget_material", fmt.Sprintf("access_token=%s", token), req)
 	
