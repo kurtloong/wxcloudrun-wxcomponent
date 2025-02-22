@@ -229,8 +229,8 @@ func getArticlesummaryHandler(c *gin.Context) {
 	}
 
 	req := struct {
-		BeginDate string `json:"begin_date"`
-		EndDate   string `json:"end_date"`
+		BeginDate string `wx:"begin_date"`
+		EndDate   string `wx:"end_date"`
 	}{
 		BeginDate: beginDate,
 		EndDate:   endDate,
@@ -293,8 +293,8 @@ func getUsersummaryHandler(c *gin.Context) {
 	}
 
 	req := struct {
-		BeginDate string `json:"begin_date"`
-		EndDate   string `json:"end_date"`
+		BeginDate string `wx:"begin_date"`
+		EndDate   string `wx:"end_date"`
 	}{
 		BeginDate: beginDate,
 		EndDate:   endDate,
@@ -367,9 +367,9 @@ func getMaterialHandler(c *gin.Context) {
 	}
 
 	req := struct {
-		Type    string `json:"type"`
-		Offset  int    `json:"offset"`
-		Count   int    `json:"count"`
+		Type    string `wx:"type"`
+		Offset  int    `wx:"offset"`
+		Count   int    `wx:"count"`
 	}{
 		Type:    dataType,	
 		Offset:  offset,
@@ -444,8 +444,8 @@ func getFreePublishHandler(c *gin.Context) {
 	}
 
 	req := struct {
-		Offset int `json:"offset"`
-		Count  int `json:"count"`
+		Offset int `wx:"offset"`
+		Count  int `wx:"count"`
 	}{
 		Offset: offset,	
 		Count:  count,
@@ -465,5 +465,4 @@ func getFreePublishHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, errno.OK.WithData(respData))
 }
-
 
