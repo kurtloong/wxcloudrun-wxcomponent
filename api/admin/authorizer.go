@@ -201,8 +201,6 @@ func getArticlesummaryHandler(c *gin.Context) {
 	//end_date
 	endDate := c.DefaultQuery("endDate", time.Now().Format("20060102"))
 
-
-
 	// 如果都为空
 	if appId == "" && originId == "" {
 		log.Error("appId and originId are empty")	
@@ -232,35 +230,28 @@ func getArticlesummaryHandler(c *gin.Context) {
 		return
 	}
 
-	//https://api.weixin.qq.com/datacube/getarticlesummary?access_token=ACCESS_TOKEN
-	//POST
-	//{
-	//"begin_date":"20170301",
-	//"end_date":"20170301"
-	//}
+	req := struct {
+		BeginDate string `json:"begin_date"`
+		EndDate   string `json:"end_date"`
+	}{
+		BeginDate: beginDate,
+		EndDate:   endDate,
+	}
 
-	// 组装请求体
-	body := fmt.Sprintf(`{"begin_date":"%s","end_date":"%s"}`, beginDate, endDate)
-
-	resp, err := http.Post(fmt.Sprintf("https://api.weixin.qq.com/datacube/getarticlesummary?access_token=%s", token), "application/json", bytes.NewBuffer([]byte(body)))
-	log.Info("resp: ", resp)
+	_, body, err := wx.PostWxJsonWithComponentToken("/datacube/getarticlesummary", fmt.Sprintf("access_token=%s", token), req)
 	if err != nil {
 		c.JSON(http.StatusOK, errno.ErrSystemError.WithData(err.Error()))
 		return
 	}
 
-	// 解析响应
 	var respData map[string]interface{}
-	err = json.NewDecoder(resp.Body).Decode(&respData)
-	if err != nil {
+	if err := wx.WxJson.Unmarshal(body, &respData); err != nil {
 		c.JSON(http.StatusOK, errno.ErrSystemError.WithData(err.Error()))
 		return
 	}
 
-	// 返回响应
 	c.JSON(http.StatusOK, errno.OK.WithData(respData))
 }
-
 
 // https://api.weixin.qq.com/datacube/getusersummary?access_token=ACCESS_TOKEN
 // POST
@@ -303,25 +294,26 @@ func getUsersummaryHandler(c *gin.Context) {
 		return
 	}
 
-	// 组装请求体
-	body := fmt.Sprintf(`{"begin_date":"%s","end_date":"%s"}`, beginDate, endDate)
+	req := struct {
+		BeginDate string `json:"begin_date"`
+		EndDate   string `json:"end_date"`
+	}{
+		BeginDate: beginDate,
+		EndDate:   endDate,
+	}
 
-	resp, err := http.Post(fmt.Sprintf("https://api.weixin.qq.com/datacube/getusersummary?access_token=%s", token), "application/json", bytes.NewBuffer([]byte(body)))
-	log.Info("resp: ", resp)
+	_, body, err := wx.PostWxJsonWithComponentToken("/datacube/getusersummary", fmt.Sprintf("access_token=%s", token), req)
 	if err != nil {
 		c.JSON(http.StatusOK, errno.ErrSystemError.WithData(err.Error()))
 		return
 	}
 
-	// 解析响应
 	var respData map[string]interface{}
-	err = json.NewDecoder(resp.Body).Decode(&respData)
-	if err != nil {
+	if err := wx.WxJson.Unmarshal(body, &respData); err != nil {
 		c.JSON(http.StatusOK, errno.ErrSystemError.WithData(err.Error()))
 		return
 	}
 
-	// 返回响应
 	log.Info("respData: ", respData)
 	c.JSON(http.StatusOK, errno.OK.WithData(respData))
 }
