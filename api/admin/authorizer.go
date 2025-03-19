@@ -195,9 +195,9 @@ func getArticlesummaryHandler(c *gin.Context) {
 	appId := c.DefaultQuery("appId", "")
 	originId := c.DefaultQuery("originId", "")
 	//begin_date 默认近一个月
-	beginDate := c.DefaultQuery("beginDate", time.Now().AddDate(0, -1, 0).Format("20060102"))
+	beginDate := c.DefaultQuery("beginDate", time.Now().AddDate(0, -1, 0).Format("2006-01-02"))
 	//end_date
-	endDate := c.DefaultQuery("endDate", time.Now().Format("20060102"))
+	endDate := c.DefaultQuery("endDate", time.Now().Format("2006-01-02"))
 
 	// 如果都为空
 	if appId == "" && originId == "" {
@@ -261,8 +261,8 @@ func getArticlesummaryHandler(c *gin.Context) {
 func getUsersummaryHandler(c *gin.Context) {
 	appId := c.DefaultQuery("appId", "")
 	originId := c.DefaultQuery("originId", "")
-		beginDate := c.DefaultQuery("beginDate", time.Now().AddDate(0, 0, -1).Format("20060102"))
-		endDate := c.DefaultQuery("endDate", time.Now().Format("20060102"))
+		beginDate := c.DefaultQuery("beginDate", time.Now().AddDate(0, 0, -1).Format("2006-01-02"))
+		endDate := c.DefaultQuery("endDate", time.Now().Format("2006-01-02"))
 
 	// 如果都为空
 	if appId == "" && originId == "" {
