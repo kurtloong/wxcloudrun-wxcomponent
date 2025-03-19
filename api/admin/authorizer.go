@@ -195,7 +195,7 @@ func getArticlesummaryHandler(c *gin.Context) {
 	appId := c.DefaultQuery("appId", "")
 	originId := c.DefaultQuery("originId", "")
 	//begin_date 默认近一个月
-	beginDate := c.DefaultQuery("beginDate", time.Now().AddDate(0, 0, -1).Format("2006-01-02"))
+	beginDate := c.DefaultQuery("beginDate", time.Now().Format("2006-01-02"))
 	//end_date
 	endDate := c.DefaultQuery("endDate", time.Now().Format("2006-01-02"))
 
