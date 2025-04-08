@@ -209,7 +209,7 @@ func getArticlesummaryHandler(c *gin.Context) {
 	// 如果appId为空，则根据originId查询
 	if appId == "" {
 		record := model.Authorizer{}
-		db.Get().Table("authorizer_records").Where("username = ?", originId).First(&record)
+		db.Get().Table("authorizers").Where("username = ?", originId).First(&record)
 		if record.Appid == "" {
 			log.Error("authorizer not found")
 			c.JSON(http.StatusOK, errno.ErrInvalidParam)
@@ -261,8 +261,8 @@ func getArticlesummaryHandler(c *gin.Context) {
 func getUsersummaryHandler(c *gin.Context) {
 	appId := c.DefaultQuery("appId", "")
 	originId := c.DefaultQuery("originId", "")
-		beginDate := c.DefaultQuery("beginDate", time.Now().AddDate(0, 0, -1).Format("2006-01-02"))
-		endDate := c.DefaultQuery("endDate", time.Now().Format("2006-01-02"))
+	beginDate := c.DefaultQuery("beginDate", time.Now().AddDate(0, 0, -1).Format("2006-01-02"))
+	endDate := c.DefaultQuery("endDate", time.Now().Format("2006-01-02"))
 
 	// 如果都为空
 	if appId == "" && originId == "" {
@@ -274,7 +274,7 @@ func getUsersummaryHandler(c *gin.Context) {
 	// 如果appId为空，则根据originId查询
 	if appId == "" {
 		record := model.Authorizer{}
-		db.Get().Table("authorizer_records").Where("username = ?", originId).First(&record)
+		db.Get().Table("authorizers").Where("username = ?", originId).First(&record)
 		if record.Appid == "" {
 			log.Error("authorizer not found")
 			c.JSON(http.StatusOK, errno.ErrInvalidParam)
@@ -316,7 +316,6 @@ func getUsersummaryHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, errno.OK.WithData(respData))
 }
 
-
 // /cgi-bin/material/batchget_material
 // POST
 // {
@@ -350,12 +349,12 @@ func getMaterialHandler(c *gin.Context) {
 	// 如果appId为空，则根据originId查询
 	if appId == "" {
 		record := model.Authorizer{}
-		db.Get().Table("authorizer_records").Where("username = ?", originId).First(&record)
+		db.Get().Table("authorizers").Where("username = ?", originId).First(&record)
 		if record.Appid == "" {
 			log.Error("authorizer not found")
 			c.JSON(http.StatusOK, errno.ErrInvalidParam)
 			return
-		}	
+		}
 
 		appId = record.Appid
 	}
@@ -367,19 +366,19 @@ func getMaterialHandler(c *gin.Context) {
 	}
 
 	req := struct {
-		Type    string `wx:"type"`
-		Offset  int    `wx:"offset"`
-		Count   int    `wx:"count"`
+		Type   string `wx:"type"`
+		Offset int    `wx:"offset"`
+		Count  int    `wx:"count"`
 	}{
-		Type:    dataType,	
-		Offset:  offset,
-		Count:   count,
+		Type:   dataType,
+		Offset: offset,
+		Count:  count,
 	}
 
 	log.Info("req微信公众号的文档像狗屎一样: ", req)
 
 	_, body, err := wx.PostWxJsonWithComponentToken("/cgi-bin/material/batchget_material", fmt.Sprintf("access_token=%s", token), req)
-	
+
 	if err != nil {
 		c.JSON(http.StatusOK, errno.ErrSystemError.WithData(err.Error()))
 		return
@@ -393,7 +392,6 @@ func getMaterialHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, errno.OK.WithData(respData))
 }
-
 
 // https://api.weixin.qq.com/cgi-bin/freepublish/batchget
 // POST
@@ -421,12 +419,12 @@ func getFreePublishHandler(c *gin.Context) {
 		log.Error("appId and originId are empty")
 		c.JSON(http.StatusOK, errno.ErrInvalidParam)
 		return
-	}	
+	}
 
 	// 如果appId为空，则根据originId查询
 	if appId == "" {
 		record := model.Authorizer{}
-		db.Get().Table("authorizer_records").Where("username = ?", originId).First(&record)
+		db.Get().Table("authorizers").Where("username = ?", originId).First(&record)
 		if record.Appid == "" {
 			log.Error("authorizer not found")
 			c.JSON(http.StatusOK, errno.ErrInvalidParam)
@@ -446,7 +444,7 @@ func getFreePublishHandler(c *gin.Context) {
 		Offset int `wx:"offset"`
 		Count  int `wx:"count"`
 	}{
-		Offset: offset,	
+		Offset: offset,
 		Count:  count,
 	}
 
@@ -464,4 +462,3 @@ func getFreePublishHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, errno.OK.WithData(respData))
 }
-
