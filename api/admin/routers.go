@@ -12,6 +12,7 @@ func Routers(e *gin.RouterGroup) {
 	e.PUT("/auth", authHandler)
 	e.GET("/articlesummary", getArticlesummaryHandler)
 	e.GET("/usersummary", getUsersummaryHandler)
+	e.GET("/usercumulate", getUsercumulateHandler)
 	e.GET("/material", getMaterialHandler)
 	e.GET("/freepublish", getFreePublishHandler)
 	g := e.Group("/admin", middleware.JWTMiddleWare)
@@ -21,7 +22,7 @@ func Routers(e *gin.RouterGroup) {
 	g.GET("/component-access-token", innerservice.GetComponentAccessTokenHandler)
 	g.GET("/authorizer-access-token", innerservice.GetAuthorizerAccessTokenHandler)
 	g.GET("/ticket", innerservice.GetTicketHandler)
-	
+
 	// 消息与事件
 	g.GET("/wx-component-records", getWxComponentRecordsHandler)
 	g.GET("/wx-biz-records", getWxBizRecordsHandler)
