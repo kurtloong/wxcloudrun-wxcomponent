@@ -15,6 +15,7 @@ func Routers(e *gin.RouterGroup) {
 	e.GET("/usercumulate", getUsercumulateHandler)
 	e.GET("/material", getMaterialHandler)
 	e.GET("/freepublish", getFreePublishHandler)
+	e.GET("/articletotal", getArticleTotalHandler)
 	g := e.Group("/admin", middleware.JWTMiddleWare)
 
 	// 第三方token

@@ -520,3 +520,74 @@ func getUsercumulateHandler(c *gin.Context) {
 	log.Info("respData: ", respData)
 	c.JSON(http.StatusOK, errno.OK.WithData(respData))
 }
+
+
+// https://api.weixin.qq.com/datacube/getarticletotal?access_token=ACCESS_TOKEN
+// POST
+// {
+// "begin_date":"20170301",
+// "end_date":"20170301"
+// }
+
+func getArticleTotalHandler(c *gin.Context) {
+	appId := c.DefaultQuery("appId", "")
+	originId := c.DefaultQuery("originId", "")
+	beginDate := c.DefaultQuery("beginDate", time.Now().AddDate(0, 0, -1).Format("2006-01-02"))
+	endDate := c.DefaultQuery("endDate", time.Now().Format("2006-01-02"))
+
+	// 如果都为空
+	if appId == "" && originId == "" {
+		log.Error("appId and originId are empty")
+		c.JSON(http.StatusOK, errno.ErrInvalidParam)
+		return
+	}
+	
+	// 如果appId为空，则根据originId查询
+	if appId == "" {
+		record := model.Authorizer{}
+		db.Get().Table("authorizers").Where("username = ?", originId).First(&record)
+		if record.Appid == "" {
+			log.Error("authorizer not found")
+	
+			return
+		}
+
+		appId = record.Appid
+	}
+	
+
+	token, err := wx.GetAuthorizerAccessToken(appId)
+	if err != nil {
+		c.JSON(http.StatusOK, errno.ErrSystemError.WithData(err.Error()))
+		return
+	}
+
+	req := struct {
+		BeginDate string `wx:"begin_date"`
+		EndDate   string `wx:"end_date"`
+	}{
+		BeginDate: beginDate,
+		EndDate:   endDate,
+	}
+
+	_, body, err := wx.PostWxJsonWithComponentToken("/datacube/getarticletotal", fmt.Sprintf("access_token=%s", token), req)
+	if err != nil {
+		c.JSON(http.StatusOK, errno.ErrSystemError.WithData(err.Error()))
+		return
+	}
+
+	var respData map[string]interface{}
+	if err := wx.WxJson.Unmarshal(body, &respData); err != nil {
+		c.JSON(http.StatusOK, errno.ErrSystemError.WithData(err.Error()))
+		return
+	}
+
+	c.JSON(http.StatusOK, errno.OK.WithData(respData))
+	
+	
+	
+	
+	
+		
+	
+}
